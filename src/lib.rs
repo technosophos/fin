@@ -8,7 +8,9 @@ use spin_sdk::{
     http_component,
 };
 
-const FINGER_PATH: &str = "/files/finger.md";
+mod types;
+
+const FINGER_PATH: &str = "/files/finger.json";
 const PLAN_PATH: &str = "/files/plan.md";
 
 /// A simple Spin HTTP component.
@@ -18,6 +20,7 @@ fn finger(req: Request) -> Result<Response> {
         "/" => do_index(),
         "/plan" => do_plan(),
         "/finger" => do_finger(),
+        "/uc" => do_uc(),
         _ => Ok(http::Response::builder()
             .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
             .status(400)
@@ -37,10 +40,7 @@ fn html_ok(msg: String) -> Result<Response> {
 fn do_index() -> Result<Response> {
     let finger = read_finger()?;
     let plan = read_plan()?;
-
-    let mut data = HashMap::new();
-    data.insert("finger", finger);
-    data.insert("plan", plan);
+    let data = types::FingerPlan { finger, plan };
 
     let mut hbars = Handlebars::new();
     hbars.register_template_file("index", "/files/templates/index.hbs")?;
@@ -48,11 +48,28 @@ fn do_index() -> Result<Response> {
 
     html_ok(out)
 }
+
+fn do_uc() -> Result<Response> {
+    let finger = read_finger()?;
+    let uc = types::FingerPlan {
+        finger,
+        plan: read_plan_md()?,
+    };
+    let out = serde_json::to_string(&uc)?;
+    Ok(http::Response::builder()
+        .header(
+            http::header::CONTENT_TYPE,
+            "application/json; charset=utf-8",
+        )
+        .status(200)
+        .body(Some(out.into()))?)
+}
+
 /// Generate the finger page
 fn do_finger() -> Result<Response> {
-    let finger_text = read_finger()?;
+    let finger_json = read_finger()?;
     let mut data = HashMap::new();
-    data.insert("finger", finger_text);
+    data.insert("finger", finger_json);
 
     let mut hbars = Handlebars::new();
     hbars.register_template_file("index", "/files/templates/finger.hbs")?;
@@ -71,16 +88,22 @@ fn do_plan() -> Result<Response> {
     html_ok(msg)
 }
 
-/// Read the finger file and convert to HTML.
-fn read_finger() -> Result<String> {
+fn read_finger() -> Result<types::Finger> {
     let finger_text = std::fs::read_to_string(FINGER_PATH)?;
-    Ok(md_to_html(&finger_text))
+    let finger_data: types::Finger = serde_json::from_str(&finger_text)?;
+
+    Ok(finger_data)
 }
 
 /// Read the plan file and convert to HTML
 fn read_plan() -> Result<String> {
     let plan_text = std::fs::read_to_string(PLAN_PATH)?;
     Ok(md_to_html(&plan_text))
+}
+
+fn read_plan_md() -> Result<String> {
+    let plan_text = std::fs::read_to_string(PLAN_PATH)?;
+    Ok(plan_text)
 }
 
 /// Convert markdown to HTML.

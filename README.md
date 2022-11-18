@@ -1,27 +1,29 @@
-# Finger, v2
+# Finger, v3
 
-In v1, we created a server styled after the old UNIX `finger` server. Now let's start making some changes to modernize our app.
+In v1, we created a server styled after the old UNIX `finger` server.
+In v2, we added support for HTML, rendering our markdown and using handlebars templates for layout.
 
-First up, let's emit HTML instead of markdown text.
-To accomplish this, we'll add the following:
-
-- A template library to make it possible to customize the HTML "wrapper"
-- A markdown processor to convert the raw text to HTML
+In v3, we're going to drift back a little bit closer to the original spec: We're going to add some structure to the finger data. We're also going to add a new endpoint that delivers serialized data. This sets the foundation for a later version.
 
 ## The New Additions
 
-Using `pulldown-cmark`, we'll add markdown processing support. And using `handlebars`, we'll add template support. This also requires a little bit of refactoring so that we can efficiently generate HTML pages instead of plain text.
+To add support for structured data, and for an eventual syndication method, we're going to encode some of our data as JSON.
 
-The `files` directory now has more than just `finger.md` and `plan.md`:
+For starters, we are going to express our finger data like this:
 
 ```
-files
-├── finger.md
-├── plan.md
-└── templates
-    ├── finger.hbs
-    ├── index.hbs
-    └── plan.hbs
+{
+    "username": "technosophos", // Required
+    "realname": "Matt Butcher", // Required
+    "location": "Boulder, CO",
+    "description": "I Fermyon all day, everyday.",
+    "links": { // A dictionary of site name, URL
+        "GitHub": "https://github.com/technosophos",
+        "LinkedIn": "https://linkedin.com/in/mattbutcher"
+    }
+}
 ```
 
-Each of the `hbs` files has a template for rendering one of our three HTTP endpoints.
+The above is roughly inspired by the definition of `{C}` in [RFC 1288](https://www.rfc-editor.org/rfc/rfc1288), but updating it to be more like Our Favorite Social Media profiles.
+
+The new endpoint will be named "/uc". This is a little nod to the original finger specification, where a `{U}{C}` query returned both the finger record and the plan. For us, the result will be serialized as JSON data. (And the plan will be delivered as markdown because doing so poses less of a security risk).

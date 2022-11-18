@@ -8,7 +8,16 @@
 
 <body>
     <h1>Finger</h1>
-    {{{finger}}}
+    Username: {{finger.username}}<br>
+    Real Name: {{finger.realname}}<br>
+    Location: {{finger.location}}<br>
+    Description: {{finger.description}}<br>
+    Links:
+    <ul>
+        {{#each finger.links}}
+        <li><a href="{{this}}" target="_">{{@key}}</a></li>
+        {{/each}}
+    </ul>
 
     <h1>Plan</h1>
     {{{plan}}}
