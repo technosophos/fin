@@ -8,7 +8,7 @@ version = "0.1.0"
 [[component]]
 id = "finger"
 source = "target/wasm32-wasi/release/finger.wasm"
-files = ["files/finger.md", "files/plan.md"]
+files = ["files/*", "files/templates/*"]
 [component.trigger]
 route = "/..."
 [component.build]

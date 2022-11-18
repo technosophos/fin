@@ -19,5 +19,8 @@ http = "0.2"
 spin-sdk = { git = "https://github.com/fermyon/spin", tag = "v0.5.0" }
 # Crate that generates Rust Wasm bindings from a WebAssembly interface.
 wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "cb871cfa1ee460b51eb1d144b175b9aab9c50aba" }
-
+# Markdown
+pulldown-cmark = { version = "0.9.2", default-features = false }
+# Handlebars templates
+handlebars = "4.3.5"
 [workspace]
