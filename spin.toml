@@ -1,0 +1,15 @@
+spin_version = "1"
+authors = ["Matt Butcher <matt.butcher@fermyon.com>"]
+description = "An HTTP equivalent to UNIX Finger"
+name = "finger"
+trigger = { type = "http", base = "/" }
+version = "0.1.0"
+
+[[component]]
+id = "finger"
+source = "target/wasm32-wasi/release/finger.wasm"
+files = ["files/finger.md", "files/plan.md"]
+[component.trigger]
+route = "/..."
+[component.build]
+command = "cargo build --target wasm32-wasi --release"
