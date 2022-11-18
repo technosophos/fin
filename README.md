@@ -25,7 +25,7 @@ With the uncertainty brewing at the Large Bird Social Media Factory, I thought i
 
 This is not at all an implementation of the protocol, just a cute tool inspired by the experience of using finger and `.plan` files.
 
-## Building This App
+## Writing This App
 
 To get started, I did:
 
@@ -43,3 +43,22 @@ I decided that initially I would take the easiest possible approach:
 While I am not trying to follow the finger protocol, format, or even the list of recommended fields, I do like the idea of having the `finger` part return personal info and the `plan` part returning a little user-supplied thought nugget.
 
 In this initial implementation, I also figured I'd just start with a file-based version that reads a `finger.md` file for the user info and a `plan.md` for the plan. Why `.md`? Because it seems like a plan file should allow some minimal markup, and Markdown is the most popular these days.
+
+## Running the App
+
+If you're ready to try things out, edit the `files/finter.md` and `files/plan.md` to say whatever you want, then start up the server:
+
+```console
+$ spin build --up
+Executing the build command for component finger: cargo build --target wasm32-wasi --release
+    Finished release [optimized] target(s) in 0.12s
+Successfully ran the build command for the Spin components.
+Serving http://127.0.0.1:3000
+Available Routes:
+  finger: http://127.0.0.1:3000 (wildcard)
+```
+
+You should be able to test out all three of the routes by pointing your browser of choice to:
+- http://127.0.0.1:3000
+- http://127.0.0.1:3000/finger
+- http://127.0.0.1:3000/plan
