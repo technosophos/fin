@@ -27,3 +27,5 @@ For starters, we are going to express our finger data like this:
 The above is roughly inspired by the definition of `{C}` in [RFC 1288](https://www.rfc-editor.org/rfc/rfc1288), but updating it to be more like Our Favorite Social Media profiles.
 
 The new endpoint will be named "/uc". This is a little nod to the original finger specification, where a `{U}{C}` query returned both the finger record and the plan. For us, the result will be serialized as JSON data. (And the plan will be delivered as markdown because doing so poses less of a security risk).
+
+Changing the `finger.md` to a `finger.json` has some implications. For example, we now have to describe finger data as a struct. That, in turn, means we need to update our Handlebars templates.
