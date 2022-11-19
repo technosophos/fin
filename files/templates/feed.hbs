@@ -1,0 +1,16 @@
+{{> top_partial}}
+{{#each friends_plans}}
+<div><br></div>
+<div class="card text-bg-light" style="width: 80rem;">
+    <div class="card-body">
+        {{> finger_partial}}
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">{{{plan}}}</li>
+    </ul>
+    <div class="card-body">
+        <a href="{{self_link}}" class="card-link">{{finger.username}}'s Home</a>
+    </div>
+</div>
+{{/each}}
+{{> bottom_partial}}

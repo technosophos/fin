@@ -3,12 +3,13 @@ authors = ["Matt Butcher <matt.butcher@fermyon.com>"]
 description = "An HTTP equivalent to UNIX Finger"
 name = "finger"
 trigger = { type = "http", base = "/" }
-version = "4.0.0"
+version = "5.0.0"
 
 [[component]]
 id = "finger"
 source = "target/wasm32-wasi/release/finger.wasm"
 files = ["files/*", "files/templates/*"]
+allowed_http_hosts = ["finger-f6ooog56.fermyon.app"]
 [component.trigger]
 route = "/..."
 [component.build]

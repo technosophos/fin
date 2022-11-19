@@ -7,10 +7,12 @@ use spin_sdk::{
     http::{Request, Response},
     http_component,
 };
+use types::Feed;
 
 mod types;
 
 const FINGER_PATH: &str = "/files/finger.json";
+const FRIENDS_PATH: &str = "/files/friends.json";
 const PLAN_PATH: &str = "/files/plan.md";
 const TEMPLATES_DIR: &str = "/files/templates";
 
@@ -23,6 +25,7 @@ fn finger(req: Request) -> Result<Response> {
         "/" => do_index(hbs),
         "/plan" => do_plan(hbs),
         "/finger" => do_finger(hbs),
+        "/feed" => do_feed(hbs),
         "/uc" => do_uc(),
         _ => Ok(http::Response::builder()
             .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
@@ -41,9 +44,12 @@ fn html_ok(msg: String) -> Result<Response> {
 
 // Generate the index.
 fn do_index(hbs: Handlebars) -> Result<Response> {
-    let finger = read_finger()?;
-    let plan = read_plan()?;
-    let data = types::FingerPlan { finger, plan };
+    let data = types::FingerPlan {
+        finger: read_finger()?,
+        plan: read_plan()?,
+        friends: read_friends()?,
+        self_link: None,
+    };
     let out = hbs.render("index", &data)?;
 
     html_ok(out)
@@ -54,6 +60,8 @@ fn do_uc() -> Result<Response> {
     let uc = types::FingerPlan {
         finger,
         plan: read_plan_md()?,
+        friends: read_friends()?,
+        self_link: None,
     };
     let out = serde_json::to_string(&uc)?;
     Ok(http::Response::builder()
@@ -78,9 +86,41 @@ fn do_finger(hbs: Handlebars) -> Result<Response> {
 fn do_plan(hbs: Handlebars) -> Result<Response> {
     let finger = read_finger()?;
     let plan = read_plan()?;
-    let data = types::FingerPlan { finger, plan };
+    let friends = read_friends()?;
+    let data = types::FingerPlan {
+        finger,
+        plan,
+        friends,
+        self_link: None,
+    };
 
     let msg = hbs.render("plan", &data)?;
+    html_ok(msg)
+}
+
+/// Read all of friends' feeds and display
+fn do_feed(hbs: Handlebars) -> Result<Response> {
+    let friends = read_friends_and_load()?;
+    let finger = read_finger()?;
+    let plan = read_plan()?;
+    let data = types::FingerPlan {
+        finger: finger.clone(),
+        plan,
+        friends,
+        self_link: None,
+    };
+
+    let mut friends_plans = vec![data.clone()];
+    for friend in &data.friends {
+        friends_plans.push(friend.load_finger()?.clone());
+    }
+
+    let feed = Feed {
+        finger,
+        friends_plans: friends_plans,
+    };
+
+    let msg = hbs.render("feed", &feed)?;
     html_ok(msg)
 }
 
@@ -89,6 +129,25 @@ fn read_finger() -> Result<types::Finger> {
     let finger_data: types::Finger = serde_json::from_str(&finger_text)?;
 
     Ok(finger_data)
+}
+
+/// Loads the friends file
+fn read_friends() -> Result<Vec<types::Friend>> {
+    let friends_text = std::fs::read_to_string(FRIENDS_PATH)?;
+    let friends_list: Vec<types::Friend> = serde_json::from_str(&friends_text)?;
+    Ok(friends_list)
+}
+
+/// Read friends and load their feed
+fn read_friends_and_load() -> Result<Vec<types::Friend>> {
+    let friends_text = std::fs::read_to_string(FRIENDS_PATH)?;
+    let friends_list: Vec<types::Friend> = serde_json::from_str(&friends_text)?;
+
+    for friend in &friends_list {
+        // This is way too fragile.
+        (*friend).load_finger()?;
+    }
+    Ok(friends_list)
 }
 
 /// Read the plan file and convert to HTML
