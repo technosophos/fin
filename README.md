@@ -1,29 +1,33 @@
-# Finger, v3
+# Finger, v4
 
-In v1, we created a server styled after the old UNIX `finger` server.
-In v2, we added support for HTML, rendering our markdown and using handlebars templates for layout.
+* In v1, we created a server styled after the old UNIX `finger` server.
+* In v2, we added support for HTML, rendering our markdown and using handlebars templates for layout.
+* In v3, we added some structure to our finger data, and then write a JSON syndication endpoint at `/uc`.
 
-In v3, we're going to drift back a little bit closer to the original spec: We're going to add some structure to the finger data. We're also going to add a new endpoint that delivers serialized data. This sets the foundation for a later version.
+In v4, we're going to focus on the UI. Namely, we're going to use [Bootstrap](https://getbootstrap.com/docs/5.2/getting-started/introduction/)
+to style things up a bit.
 
 ## The New Additions
 
-To add support for structured data, and for an eventual syndication method, we're going to encode some of our data as JSON.
+Styling is mainly done in the templates, which we added in v2. So we'll spend more time in HTML and CSS than we will in Rust code. Though in the name of ease, we will make a few changes to our template renderer.
 
-For starters, we are going to express our finger data like this:
+### Changes to the Rust Code
 
-```
-{
-    "username": "technosophos", // Required
-    "realname": "Matt Butcher", // Required
-    "location": "Boulder, CO",
-    "description": "I Fermyon all day, everyday.",
-    "links": { // A dictionary of site name, URL
-        "GitHub": "https://github.com/technosophos",
-        "LinkedIn": "https://linkedin.com/in/mattbutcher"
-    }
-}
-```
+To make things more flexible and pretty, there are a few changes to the code:
 
-The above is roughly inspired by the definition of `{C}` in [RFC 1288](https://www.rfc-editor.org/rfc/rfc1288), but updating it to be more like Our Favorite Social Media profiles.
+* I added an `image` field to the finger
+* Instead of loading individual templates, we now load the entire `/files/templates` directory
 
-The new endpoint will be named "/uc". This is a little nod to the original finger specification, where a `{U}{C}` query returned both the finger record and the plan. For us, the result will be serialized as JSON data. (And the plan will be delivered as markdown because doing so poses less of a security risk).
+### Adding a new Wasm module
+
+To serve static files, the `modules/spin_static_fs.wasm` static file server has been added, and static files are found in the `static/` directory
+
+The static file server comes from the [Spin Fileserver](https://github.com/fermyon/spin-fileserver) project on GitHub.
+
+### Styling Away!
+
+The rest of the work in this project has been editing the `hbs` files in `files/templates`.
+
+* Larger templates are broken into partials for reuse
+* Lots of HTML has been added
+* Mostly, I used Bootstrap styles, but custom styles are in `static/style/style.css` (served by the Spin Fileserver).

@@ -1,0 +1,24 @@
+<div id="finger-block" class="card mb-3" style="max-width: 800px;">
+    <div class="row g-0">
+        <div class="col-md-4">
+            <img src="{{finger.image}}" class="img-fluid rounded-start" alt="Profile picture for {{finger.username}}">
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">{{finger.username}}</h5>
+                <p class="card-text">{{finger.realname}}</p>
+                <p class="card-text">Location: {{finger.location}}</p>
+                <blockquote class="blockquote mb-0">
+                    <p>{{finger.description}}</p>
+                </blockquote>
+                <ul class="nav justify-content-end">
+                    {{#each finger.links}}
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="{{this}}" target="_">{{@key}}</a>
+                    </li>
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

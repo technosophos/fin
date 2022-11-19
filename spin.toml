@@ -3,7 +3,7 @@ authors = ["Matt Butcher <matt.butcher@fermyon.com>"]
 description = "An HTTP equivalent to UNIX Finger"
 name = "finger"
 trigger = { type = "http", base = "/" }
-version = "0.1.0"
+version = "4.0.0"
 
 [[component]]
 id = "finger"
@@ -13,3 +13,11 @@ files = ["files/*", "files/templates/*"]
 route = "/..."
 [component.build]
 command = "cargo build --target wasm32-wasi --release"
+
+[[component]]
+# source = "https://github.com/fermyon/spin-fileserver/releases/download/v0.0.1/spin_static_fs.wasm"
+source = "modules/spin_static_fs.wasm"
+id = "fileserver"
+files = [{ source = "static/", destination = "/" }, ]
+[component.trigger]
+route = "/static/..."

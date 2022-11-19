@@ -12,14 +12,17 @@ mod types;
 
 const FINGER_PATH: &str = "/files/finger.json";
 const PLAN_PATH: &str = "/files/plan.md";
+const TEMPLATES_DIR: &str = "/files/templates";
 
 /// A simple Spin HTTP component.
 #[http_component]
 fn finger(req: Request) -> Result<Response> {
+    let mut hbs = Handlebars::new();
+    hbs.register_templates_directory(".hbs", TEMPLATES_DIR)?;
     match req.uri().path() {
-        "/" => do_index(),
-        "/plan" => do_plan(),
-        "/finger" => do_finger(),
+        "/" => do_index(hbs),
+        "/plan" => do_plan(hbs),
+        "/finger" => do_finger(hbs),
         "/uc" => do_uc(),
         _ => Ok(http::Response::builder()
             .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
@@ -37,14 +40,11 @@ fn html_ok(msg: String) -> Result<Response> {
 }
 
 // Generate the index.
-fn do_index() -> Result<Response> {
+fn do_index(hbs: Handlebars) -> Result<Response> {
     let finger = read_finger()?;
     let plan = read_plan()?;
     let data = types::FingerPlan { finger, plan };
-
-    let mut hbars = Handlebars::new();
-    hbars.register_template_file("index", "/files/templates/index.hbs")?;
-    let out = hbars.render("index", &data)?;
+    let out = hbs.render("index", &data)?;
 
     html_ok(out)
 }
@@ -66,25 +66,21 @@ fn do_uc() -> Result<Response> {
 }
 
 /// Generate the finger page
-fn do_finger() -> Result<Response> {
+fn do_finger(hbs: Handlebars) -> Result<Response> {
     let finger_json = read_finger()?;
     let mut data = HashMap::new();
     data.insert("finger", finger_json);
 
-    let mut hbars = Handlebars::new();
-    hbars.register_template_file("index", "/files/templates/finger.hbs")?;
-    let msg = hbars.render("index", &data)?;
+    let msg = hbs.render("finger", &data)?;
     html_ok(msg)
 }
 /// Generate the plan page
-fn do_plan() -> Result<Response> {
-    let plan_text = read_plan()?;
-    let mut data = HashMap::new();
-    data.insert("plan", plan_text);
+fn do_plan(hbs: Handlebars) -> Result<Response> {
+    let finger = read_finger()?;
+    let plan = read_plan()?;
+    let data = types::FingerPlan { finger, plan };
 
-    let mut hbars = Handlebars::new();
-    hbars.register_template_file("index", "/files/templates/plan.hbs")?;
-    let msg = hbars.render("index", &data)?;
+    let msg = hbs.render("plan", &data)?;
     html_ok(msg)
 }
 

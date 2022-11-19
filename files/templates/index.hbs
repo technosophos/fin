@@ -1,31 +1,5 @@
-<!DOCTYPE html>
-<html>
+{{> top_partial}}
+{{> finger_partial}}
+{{> plan_partial}}
 
-<head>
-    <meta charset="utf-8">
-    <title>Finger and Plan</title>
-</head>
-
-<body>
-    <h1>Finger</h1>
-    Username: {{finger.username}}<br>
-    Real Name: {{finger.realname}}<br>
-    Location: {{finger.location}}<br>
-    Description: {{finger.description}}<br>
-    Links:
-    <ul>
-        {{#each finger.links}}
-        <li><a href="{{this}}" target="_">{{@key}}</a></li>
-        {{/each}}
-    </ul>
-
-    <h1>Plan</h1>
-    {{{plan}}}
-
-    <ul>
-        <li><a href="/finger">Finger</a></li>
-        <li><a href="/plan">Plan</a></li>
-    </ul>
-</body>
-
-</html>
+{{> bottom_partial}}

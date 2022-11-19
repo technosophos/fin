@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<html>
+{{> top_partial}}
+{{>finger_partial}}
+<div>
+    <p></p>
+</div>
 
-<head>
-    <meta charset="utf-8">
-    <title>Finger</title>
-</head>
 
-<body>
-    Username: {{finger.username}}<br>
-    Real Name: {{finger.realname}}<br>
-    Location: {{finger.location}}<br>
-    Description: {{finger.description}}<br>
-    Links:
-    <ul>
-        {{#each finger.links}}
-        <li><a href="{{this}}" target="_">{{@key}}</a></li>
-        {{/each}}
-    </ul>
-</body>
-
-</html>
+Username: {{finger.username}}<br>
+Real Name: {{finger.realname}}<br>
+Location: {{finger.location}}<br>
+Description: {{finger.description}}<br>
+Links:
+<ul>
+    {{#each finger.links}}
+    <li><a href="{{this}}" target="_">{{@key}}</a></li>
+    {{/each}}
+</ul>
+{{> bottom_partial}}
