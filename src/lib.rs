@@ -9,6 +9,7 @@ use spin_sdk::{
 };
 use types::Feed;
 
+mod auth;
 mod redis;
 mod types;
 
@@ -100,6 +101,14 @@ fn do_plan(hbs: Handlebars) -> Result<Response> {
 
 fn do_plan_edit(req: Request, hbs: Handlebars) -> Result<Response> {
     // TODO: Add HTTP basic auth or something better
+    if let Err(_) = auth::auth_user(req.headers()) {
+        println!("Error in auth. Generating Unauthorized response");
+        return Ok(http::Response::builder()
+            .header(http::header::CONTENT_TYPE, "text/plain")
+            .header(http::header::WWW_AUTHENTICATE, "Basic realm=\"edit plan\"")
+            .status(401)
+            .body(Some("Unauthorized".into()))?);
+    }
 
     let finger = read_finger()?;
     let plan = redis::read_plan(&finger.username)?;
@@ -178,7 +187,7 @@ fn md_to_html(input: &str) -> String {
     let mut output = String::new();
     markdown::html::push_html(&mut output, parser);
 
-    output
+    ammonia::clean(&*output)
 }
 
 fn test_redis() -> Result<Response> {

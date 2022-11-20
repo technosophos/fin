@@ -3,7 +3,7 @@ authors = ["Matt Butcher <matt.butcher@fermyon.com>"]
 description = "An HTTP equivalent to UNIX Finger"
 name = "finger"
 trigger = { type = "http", base = "/" }
-version = "5.0.0"
+version = "7.0.0"
 
 [[component]]
 id = "finger"
