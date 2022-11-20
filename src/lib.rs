@@ -9,11 +9,11 @@ use spin_sdk::{
 };
 use types::Feed;
 
+mod redis;
 mod types;
 
 const FINGER_PATH: &str = "/files/finger.json";
 const FRIENDS_PATH: &str = "/files/friends.json";
-const PLAN_PATH: &str = "/files/plan.md";
 const TEMPLATES_DIR: &str = "/files/templates";
 
 /// A simple Spin HTTP component.
@@ -24,8 +24,10 @@ fn finger(req: Request) -> Result<Response> {
     match req.uri().path() {
         "/" => do_index(hbs),
         "/plan" => do_plan(hbs),
+        "/plan/edit" => do_plan_edit(req, hbs),
         "/finger" => do_finger(hbs),
         "/feed" => do_feed(hbs),
+        "/test-redis" => test_redis(),
         "/uc" => do_uc(),
         _ => Ok(http::Response::builder()
             .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
@@ -42,14 +44,20 @@ fn html_ok(msg: String) -> Result<Response> {
         .body(Some(msg.into()))?)
 }
 
-// Generate the index.
-fn do_index(hbs: Handlebars) -> Result<Response> {
-    let data = types::FingerPlan {
-        finger: read_finger()?,
-        plan: read_plan()?,
+fn finger_plan() -> Result<types::FingerPlan> {
+    let finger = read_finger()?;
+    let uname = &finger.username.clone();
+    Ok(types::FingerPlan {
+        finger,
+        plan: md_to_html(&redis::read_plan(&uname)?),
         friends: read_friends()?,
         self_link: None,
-    };
+    })
+}
+
+// Generate the index.
+fn do_index(hbs: Handlebars) -> Result<Response> {
+    let data = finger_plan()?;
     let out = hbs.render("index", &data)?;
 
     html_ok(out)
@@ -57,9 +65,10 @@ fn do_index(hbs: Handlebars) -> Result<Response> {
 
 fn do_uc() -> Result<Response> {
     let finger = read_finger()?;
+    let uname = finger.username.clone();
     let uc = types::FingerPlan {
         finger,
-        plan: read_plan_md()?,
+        plan: redis::read_plan(&uname)?, // The raw version, not HTML
         friends: read_friends()?,
         self_link: None,
     };
@@ -84,31 +93,54 @@ fn do_finger(hbs: Handlebars) -> Result<Response> {
 }
 /// Generate the plan page
 fn do_plan(hbs: Handlebars) -> Result<Response> {
-    let finger = read_finger()?;
-    let plan = read_plan()?;
-    let friends = read_friends()?;
-    let data = types::FingerPlan {
-        finger,
-        plan,
-        friends,
-        self_link: None,
-    };
-
+    let data = finger_plan()?;
     let msg = hbs.render("plan", &data)?;
     html_ok(msg)
 }
 
+fn do_plan_edit(req: Request, hbs: Handlebars) -> Result<Response> {
+    // TODO: Add HTTP basic auth or something better
+
+    let finger = read_finger()?;
+    let plan = redis::read_plan(&finger.username)?;
+    let friends = read_friends()?;
+
+    match req.method() {
+        &http::method::Method::POST => {
+            match req.body() {
+                Some(body) => {
+                    let form: types::EditPlanQueryParams = serde_qs::from_bytes(&body.to_vec())?;
+                    redis::write_plan(&finger.username, form.plan)?;
+                }
+                None => {
+                    // I guess we do nothing?
+                    redis::write_plan(&finger.username, "Placeholder text".to_owned())?;
+                }
+            }
+            // Update Redis and then redirect to /plan
+            Ok(http::Response::builder()
+                .header(http::header::LOCATION, "/plan")
+                .status(303)
+                .body(None)?)
+        }
+        _ => {
+            let data = types::FingerPlan {
+                finger,
+                plan,
+                friends,
+                self_link: None,
+            };
+            // Display the editor.
+            let msg = hbs.render("edit_plan", &data)?;
+            html_ok(msg)
+        }
+    }
+}
+
 /// Read all of friends' feeds and display
 fn do_feed(hbs: Handlebars) -> Result<Response> {
-    let friends = read_friends_and_load()?;
-    let finger = read_finger()?;
-    let plan = read_plan()?;
-    let data = types::FingerPlan {
-        finger: finger.clone(),
-        plan,
-        friends,
-        self_link: None,
-    };
+    //let friends = read_friends_and_load()?;
+    let data = finger_plan()?;
 
     let mut friends_plans = vec![data.clone()];
     for friend in &data.friends {
@@ -116,7 +148,7 @@ fn do_feed(hbs: Handlebars) -> Result<Response> {
     }
 
     let feed = Feed {
-        finger,
+        finger: data.finger,
         friends_plans: friends_plans,
     };
 
@@ -138,29 +170,6 @@ fn read_friends() -> Result<Vec<types::Friend>> {
     Ok(friends_list)
 }
 
-/// Read friends and load their feed
-fn read_friends_and_load() -> Result<Vec<types::Friend>> {
-    let friends_text = std::fs::read_to_string(FRIENDS_PATH)?;
-    let friends_list: Vec<types::Friend> = serde_json::from_str(&friends_text)?;
-
-    for friend in &friends_list {
-        // This is way too fragile.
-        (*friend).load_finger()?;
-    }
-    Ok(friends_list)
-}
-
-/// Read the plan file and convert to HTML
-fn read_plan() -> Result<String> {
-    let plan_text = std::fs::read_to_string(PLAN_PATH)?;
-    Ok(md_to_html(&plan_text))
-}
-
-fn read_plan_md() -> Result<String> {
-    let plan_text = std::fs::read_to_string(PLAN_PATH)?;
-    Ok(plan_text)
-}
-
 /// Convert markdown to HTML.
 fn md_to_html(input: &str) -> String {
     // Turn on all the markdown options
@@ -170,4 +179,13 @@ fn md_to_html(input: &str) -> String {
     markdown::html::push_html(&mut output, parser);
 
     output
+}
+
+fn test_redis() -> Result<Response> {
+    redis::set_string("test-insert".to_owned(), "Hello".to_owned())?;
+    let msg = redis::get_string("test-insert".to_owned())?;
+    Ok(http::Response::builder()
+        .header(http::header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .status(200)
+        .body(Some(msg.into()))?)
 }

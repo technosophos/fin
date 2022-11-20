@@ -10,6 +10,7 @@ id = "finger"
 source = "target/wasm32-wasi/release/finger.wasm"
 files = ["files/*", "files/templates/*"]
 allowed_http_hosts = ["finger-f6ooog56.fermyon.app"]
+# environment = {"REDIS_HOST" = "ENTER YOUR HOST AND UNCOMMENT"}
 [component.trigger]
 route = "/..."
 [component.build]

@@ -1,28 +1,27 @@
-# Finger, v5
+# Finger, v6
 
 * In v1, we created a server styled after the old UNIX `finger` server.
 * In v2, we added support for HTML, rendering our markdown and using handlebars templates for layout.
 * In v3, we added some structure to our finger data, and then write a JSON syndication endpoint at `/uc`.
 * In v4, we added styling, the static file server, and a profile image.
+* In v5, we added friends and the feed
 
-## A False Start
+Now it's time to really go off the rails!
 
-Sometimes it is good to talk about a mistake. In this case, inspired by the original Finger's multi-user design, I started designing a system that would host multiple finger users on the same finger instance. But then I realized that forcing that design pattern didn't really match with the way I have been working. It would be peculiar to have to coordinate deployments of the same Spin project. So I gave up on that.
+To this point, all of our data has been stored in flat files within the app. That means updating the plan requires you to redeploy the app. What if we stored the plan in Redis, though? Then we could edit the plan from anywhere!
 
-For now, and probably onward, our finger implementation will be one user per server.
-
-## A New Hope
-
-But this did get me to a better place. It is time to tackle syndication.
-
-The goal of v5 is to make it possible for one user to "follow" other finger servers. For this first go, the feature will be a little dull. We'll be using a JSON file to track friends' feeds. But in some later version, perhaps we can make this better.
+> The main feature is the ability to edit your plan file in-browser, with the results stored in (and fetched from) Redis. Note, however, that this version (v6) should NOT be used in production because there is no concept of a user account or login. Anyone can edit the plan.
 
 ## The New Additions
 
-First, take a look at `files/friends.json`. This is where we will add new friends. Unfortunately, right now any time you add a friend, you have to also edit `spin.toml` to allow the domain for your friend's server. Or if you are particularly daring, you can use `allowed_http_hosts = ["insecure:allow-all"]`.
+To get started, I created a free Redis account at Redis Labs' website. That way, I can use `spin deploy` to deploy my app, but I can also test it locally. Setting the `REDIS_HOST` env var to the `redis://` URL will get you going.
 
-Right now, the URL in `files/friends.json` must always end in a slash. I will fix this eventually.
+> NOTE: Make sure you do not embed your username and password into a `spin.toml` and then check that file into VCS.
 
-The main page now lists friends, and links to the friends' instance. The new `/feed` page lists the latest plans from all your friends. Note that because of the way this URL is constructed, the URL in the `files/friends.json` MUST go to another Finger server.
+This new change adds the `redis.rs` library.
 
-The easiest way to test is to deploy an instance to Fermyon Cloud with `spin deploy`, and then set up that URL as a friend in your `files/friends.json`. Then you can locally `spin up` and have at least one friend.
+The new `/plan/edit` page adds a form for editing your plan. It accepts markdown.
+
+To edit your plan, go to the `/plan` endpoint (`Plan` in the menu) and click `edit` or go straight to `/plan/edit`.
+
+Once more... DO NOT USE THIS IN PRODUCTION! In v7, we will start adding security.

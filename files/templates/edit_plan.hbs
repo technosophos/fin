@@ -1,0 +1,15 @@
+{{> top_partial}}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Update Your Plan</h5>
+        <form method="POST" action="/plan/edit">
+            <div class="mb-3">
+                <textarea class="form-control" id="plan" name="plan" rows="8">{{plan}}</textarea>
+            </div>
+            <input class="btn btn-primary" type="submit" value="Update">
+        </form>
+    </div>
+</div>
+
+Edit form goes here.
+{{> bottom_partial}}

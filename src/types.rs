@@ -68,3 +68,9 @@ impl Friend {
         }
     }
 }
+
+/// This models the form data sent from the /plan/edit page.
+#[derive(Deserialize, Serialize)]
+pub struct EditPlanQueryParams {
+    pub plan: String,
+}
