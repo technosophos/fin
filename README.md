@@ -1,4 +1,4 @@
-# Finger, v7
+# Fin, v8
 
 * In v1, we created a server styled after the old UNIX `finger` server.
 * In v2, we added support for HTML, rendering our markdown and using handlebars templates for layout.
@@ -6,23 +6,11 @@
 * In v4, we added styling, the static file server, and a profile image.
 * In v5, we added friends and the feed
 * In v6, we added Redis support and in-browser editing
+* In v8, we added output sanitization and HTTP Basic auth for the editor form
 
-But our handling of things in v6 was NOT secure. In this release, we will start to clean up our security.
+For this version, we're only going to do one thing: Rename the project from `Finger` to `Fin`.
+This is a pun. "Fin" refers to an appendage on aquatic animals like fish. But "Fin" is both half of "Finger", and the Latin word for "The End" (not that there's any social commentary implied there on the implosion of a certain bird-themed social media platform).
 
 ## The New Additions
 
-The following additions are needed for security:
-
-* We need to sanitize all Markdown
-* We need to protect the plan form from unauthorized access. We do that with HTTP Basic auth right now
-* Currently, all of the properties in the finger do not allow HTML, and we rely on handlebars to escape.
-
-At this point, there are two env vars you will need to set:
-
-So your spin commandline will look something like this:
-
-```
-$ spin build --up -e REDIS_HOST='redis://redis.example.com:14908' -e ADMIN_PASSWORD=password
-```
-
-> Since this is a single user system right now, any username is allowed when prompted for HTTP basic auth. Only password is checked.
+Renamed the top-level name to Fin

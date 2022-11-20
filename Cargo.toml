@@ -1,8 +1,8 @@
 [package]
-name = "finger"
+name = "fin"
 authors = ["Matt Butcher <matt.butcher@fermyon.com>"]
-description = "An HTTP equivalent to UNIX Finger"
-version = "0.1.0"
+description = "A social media server inspired by UNIX Finger and Plan"
+version = "8.0.0"
 edition = "2021"
 
 [lib]

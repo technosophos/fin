@@ -26,7 +26,7 @@ fn finger(req: Request) -> Result<Response> {
         "/" => do_index(hbs),
         "/plan" => do_plan(hbs),
         "/plan/edit" => do_plan_edit(req, hbs),
-        "/finger" => do_finger(hbs),
+        "/about" => do_finger(hbs),
         "/feed" => do_feed(hbs),
         "/test-redis" => test_redis(),
         "/uc" => do_uc(),

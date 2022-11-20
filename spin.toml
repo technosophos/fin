@@ -1,13 +1,13 @@
 spin_version = "1"
 authors = ["Matt Butcher <matt.butcher@fermyon.com>"]
-description = "An HTTP equivalent to UNIX Finger"
-name = "finger"
+description = "A social media server inspired by UNIX Finger and Plan"
+name = "fin"
 trigger = { type = "http", base = "/" }
-version = "7.0.0"
+version = "8.0.0"
 
 [[component]]
-id = "finger"
-source = "target/wasm32-wasi/release/finger.wasm"
+id = "fin"
+source = "target/wasm32-wasi/release/fin.wasm"
 files = ["files/*", "files/templates/*"]
 allowed_http_hosts = ["finger-f6ooog56.fermyon.app"]
 # environment = {"REDIS_HOST" = "ENTER YOUR HOST AND UNCOMMENT"}
