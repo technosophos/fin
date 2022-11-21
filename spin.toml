@@ -10,7 +10,7 @@ id = "fin"
 source = "target/wasm32-wasi/release/fin.wasm"
 files = ["files/*", "files/templates/*"]
 allowed_http_hosts = ["finger-f6ooog56.fermyon.app"]
-# environment = {"REDIS_HOST" = "ENTER YOUR HOST AND UNCOMMENT"}
+# environment = {"REDIS_HOST" = "ENTER YOUR HOST AND UNCOMMENT", "ADMIN_PASSWORD" = "password for editing plan"}
 [component.trigger]
 route = "/..."
 [component.build]
