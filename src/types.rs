@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -24,6 +25,13 @@ pub struct FingerPlan {
     #[serde(default)]
     pub friends: Vec<Friend>,
     pub self_link: Option<String>,
+    pub plan_date: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct FingerPlanHistory {
+    pub finger: Finger,
+    pub plan_history: PlanHistory,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -36,6 +44,17 @@ pub struct Feed {
 pub struct Friend {
     pub username: String,
     pub url: String,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct PlanHistory {
+    pub entries: Vec<PlanHistoryEntry>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct PlanHistoryEntry {
+    pub date: DateTime<Utc>,
+    pub plan: String,
 }
 
 impl Friend {
@@ -62,6 +81,7 @@ impl Friend {
                     links: None,
                 },
                 plan: "".to_owned(),
+                plan_date: None,
                 friends: vec![],
                 self_link: None,
             }),

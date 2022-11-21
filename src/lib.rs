@@ -10,6 +10,7 @@ use spin_sdk::{
 use types::Feed;
 
 mod auth;
+mod dates;
 mod redis;
 mod types;
 
@@ -19,8 +20,10 @@ const TEMPLATES_DIR: &str = "/files/templates";
 
 /// A simple Spin HTTP component.
 #[http_component]
-fn finger(req: Request) -> Result<Response> {
+fn fin(req: Request) -> Result<Response> {
     let mut hbs = Handlebars::new();
+    // handlebars_sprig::addhelpers(&mut hbs);
+    dates::addhelpers(&mut hbs);
     hbs.register_templates_directory(".hbs", TEMPLATES_DIR)?;
     match req.uri().path() {
         "/" => do_index(hbs),
@@ -28,6 +31,7 @@ fn finger(req: Request) -> Result<Response> {
         "/plan/edit" => do_plan_edit(req, hbs),
         "/about" => do_finger(hbs),
         "/feed" => do_feed(hbs),
+        "/history" => do_history(hbs),
         "/test-redis" => test_redis(),
         "/uc" => do_uc(),
         _ => Ok(http::Response::builder()
@@ -48,11 +52,23 @@ fn html_ok(msg: String) -> Result<Response> {
 fn finger_plan() -> Result<types::FingerPlan> {
     let finger = read_finger()?;
     let uname = &finger.username.clone();
+    let plan_hist = &redis::read_plan(&uname)?;
     Ok(types::FingerPlan {
         finger,
-        plan: md_to_html(&redis::read_plan(&uname)?),
+        plan: md_to_html(plan_hist.plan.as_str()),
+        plan_date: Some(plan_hist.date),
         friends: read_friends()?,
         self_link: None,
+    })
+}
+
+fn finger_plan_history() -> Result<types::FingerPlanHistory> {
+    let finger = read_finger()?;
+    let uname = &finger.username.clone();
+    let plan_history = redis::read_plan_history(&uname)?;
+    Ok(types::FingerPlanHistory {
+        finger,
+        plan_history,
     })
 }
 
@@ -67,9 +83,11 @@ fn do_index(hbs: Handlebars) -> Result<Response> {
 fn do_uc() -> Result<Response> {
     let finger = read_finger()?;
     let uname = finger.username.clone();
+    let last_plan = redis::read_plan(&uname)?;
     let uc = types::FingerPlan {
         finger,
-        plan: redis::read_plan(&uname)?, // The raw version, not HTML
+        plan: last_plan.plan, // The raw version, not HTML
+        plan_date: Some(last_plan.date),
         friends: read_friends()?,
         self_link: None,
     };
@@ -92,6 +110,14 @@ fn do_finger(hbs: Handlebars) -> Result<Response> {
     let msg = hbs.render("finger", &data)?;
     html_ok(msg)
 }
+
+/// Generate the history of plans.
+fn do_history(hbs: Handlebars) -> Result<Response> {
+    let data = finger_plan_history()?;
+    let msg = hbs.render("history", &data)?;
+    html_ok(msg)
+}
+
 /// Generate the plan page
 fn do_plan(hbs: Handlebars) -> Result<Response> {
     let data = finger_plan()?;
@@ -123,7 +149,7 @@ fn do_plan_edit(req: Request, hbs: Handlebars) -> Result<Response> {
                 }
                 None => {
                     // I guess we do nothing?
-                    redis::write_plan(&finger.username, "Placeholder text".to_owned())?;
+                    redis::write_plan(&finger.username, "".to_owned())?;
                 }
             }
             // Update Redis and then redirect to /plan
@@ -135,8 +161,9 @@ fn do_plan_edit(req: Request, hbs: Handlebars) -> Result<Response> {
         _ => {
             let data = types::FingerPlan {
                 finger,
-                plan,
+                plan: plan.plan,
                 friends,
+                plan_date: Some(plan.date),
                 self_link: None,
             };
             // Display the editor.

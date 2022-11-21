@@ -32,5 +32,10 @@ serde_qs = "0.10"
 ammonia = "3"
 # HTTP Basic auth scheme support
 http-auth-basic = "0.3.3"
+# Date and time support
+chrono = { version = "0.4", features = ["serde"] }
+# Template helpers
+# handlebars_sprig = { git = "https://github.com/rajatjindal/handlebars-sprig", rev = "f2d42142121d4f04b35ce00fdd26ba48b0993fe0", optional = true }
+
 
 [workspace]

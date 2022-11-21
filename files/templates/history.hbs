@@ -1,0 +1,13 @@
+{{> top_partial}}
+<h2>Plan History</h2>
+{{#each plan_history.entries}}
+<div><br></div>
+<div class="card">
+    <h5 class="card-header">{{date_format "%b %d, %Y" date}}</h5>
+    <div class="card-body">
+        <div class="card-text">{{{plan}}}</div>
+        <p class="card-text text-end"><small class="text-muted">{{date_format "%b %d, %Y %I:%M%P UTC" date}}</small></p>
+    </div>
+</div>
+{{/each}}
+{{> bottom_partial}}
